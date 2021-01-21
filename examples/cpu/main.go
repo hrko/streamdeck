@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/samwho/streamdeck"
+	"github.com/FlowingSPDG/streamdeck"
 	sdcontext "github.com/samwho/streamdeck/context"
 	"github.com/shirou/gopsutil/cpu"
 )

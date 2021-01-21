@@ -11,7 +11,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/samwho/streamdeck"
+	"github.com/FlowingSPDG/streamdeck"
 )
 
 type Settings struct {
