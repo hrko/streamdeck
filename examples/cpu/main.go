@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/FlowingSPDG/streamdeck"
-	sdcontext "github.com/samwho/streamdeck/context"
+	sdcontext "github.com/FlowingSPDG/streamdeck/context"
 	"github.com/shirou/gopsutil/cpu"
 )
 

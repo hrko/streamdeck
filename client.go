@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
+	sdcontext "github.com/FlowingSPDG/streamdeck/context"
 	"github.com/gorilla/websocket"
-	sdcontext "github.com/samwho/streamdeck/context"
 )
 
 var (
