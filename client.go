@@ -52,6 +52,11 @@ func (client *Client) Action(uuid string) *Action {
 	return client.actions[uuid]
 }
 
+// RegisterNoActionHandler register event handler with no action such as "applicationDidLaunch".
+func (client *Client) RegisterNoActionHandler(eventName string, handler EventHandler) {
+	client.handlers[eventName] = append(client.handlers[eventName], handler)
+}
+
 func (client *Client) Run() error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
