@@ -38,10 +38,11 @@ type Client struct {
 
 func NewClient(ctx context.Context, params RegistrationParams) *Client {
 	return &Client{
-		ctx:     ctx,
-		params:  params,
-		actions: make(map[string]*Action),
-		done:    make(chan struct{}),
+		ctx:      ctx,
+		params:   params,
+		actions:  make(map[string]*Action),
+		handlers: make(map[string][]EventHandler),
+		done:     make(chan struct{}),
 	}
 }
 func (client *Client) Action(uuid string) *Action {
