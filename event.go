@@ -31,12 +31,17 @@ type DeviceSize struct {
 type DeviceType int
 
 const (
-	StreamDeck       DeviceType = 0
-	StreamDeckMini   DeviceType = 1
-	StreamDeckXL     DeviceType = 2
+	// StreamDeck 15LCD key streamdeck
+	StreamDeck DeviceType = 0
+	// StreamDeckMini 6LCD key streamdeck mini
+	StreamDeckMini DeviceType = 1
+	// StreamDeckXL 32LCD key streamdeck mini
+	StreamDeckXL DeviceType = 2
+	// StreamDeckMobile Streamdeck mobile app on iphone
 	StreamDeckMobile DeviceType = 3
 )
 
+// NewEvent Generate new event data
 func NewEvent(ctx context.Context, name string, payload interface{}) Event {
 	p, err := json.Marshal(payload)
 	if err != nil {
@@ -49,5 +54,58 @@ func NewEvent(ctx context.Context, name string, payload interface{}) Event {
 		Context: sdcontext.Context(ctx),
 		Device:  sdcontext.Device(ctx),
 		Payload: p,
+	}
+}
+
+func NewEventSendToPropertyInspector(ctx context.Context, payload interface{}) Event {
+	p, err := json.Marshal(payload)
+	if err != nil {
+		panic(err)
+	}
+
+	return Event{
+		Action:  sdcontext.Action(ctx),
+		Event:   SendToPropertyInspector,
+		Context: sdcontext.Context(ctx),
+		Payload: p,
+	}
+}
+
+func NewEventSetSettings(ctx context.Context, payload interface{}) Event {
+	p, err := json.Marshal(payload)
+	if err != nil {
+		panic(err)
+	}
+
+	return Event{
+		Event:   SetSettings,
+		Context: sdcontext.Context(ctx),
+		Payload: p,
+	}
+}
+
+func NewEventGetSettings(ctx context.Context) Event {
+	return Event{
+		Event:   GetSettings,
+		Context: sdcontext.Context(ctx),
+	}
+}
+
+func NewEventSetGlobalSettings(ctx context.Context, payload interface{}) Event {
+	p, err := json.Marshal(payload)
+	if err != nil {
+		panic(err)
+	}
+	return Event{
+		Event:   GetSettings,
+		Context: sdcontext.Context(ctx),
+		Payload: p,
+	}
+}
+
+func NewEventGetGlobalSettings(ctx context.Context) Event {
+	return Event{
+		Event:   GetSettings,
+		Context: sdcontext.Context(ctx),
 	}
 }

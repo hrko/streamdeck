@@ -155,19 +155,19 @@ func (client *Client) send(event Event) error {
 }
 
 func (client *Client) SetSettings(ctx context.Context, settings interface{}) error {
-	return client.send(NewEvent(ctx, SetSettings, settings))
+	return client.send(NewEventSetSettings(ctx, settings))
 }
 
 func (client *Client) GetSettings(ctx context.Context) error {
-	return client.send(NewEvent(ctx, GetSettings, nil))
+	return client.send(NewEventGetSettings(ctx))
 }
 
 func (client *Client) SetGlobalSettings(ctx context.Context, settings interface{}) error {
-	return client.send(NewEvent(ctx, SetGlobalSettings, settings))
+	return client.send(NewEventSetGlobalSettings(ctx, settings))
 }
 
 func (client *Client) GetGlobalSettings(ctx context.Context) error {
-	return client.send(NewEvent(ctx, GetGlobalSettings, nil))
+	return client.send(NewEventGetGlobalSettings(ctx))
 }
 
 func (client *Client) OpenURL(ctx context.Context, u url.URL) error {
@@ -203,7 +203,7 @@ func (client *Client) SwitchToProfile(ctx context.Context, profile string) error
 }
 
 func (client *Client) SendToPropertyInspector(ctx context.Context, payload interface{}) error {
-	return client.send(NewEvent(ctx, SendToPropertyInspector, payload))
+	return client.send(NewEventSendToPropertyInspector(ctx, payload))
 }
 
 func (client *Client) SendToPlugin(ctx context.Context, payload interface{}) error {
