@@ -6,6 +6,7 @@ import (
 	sdcontext "github.com/FlowingSPDG/streamdeck/context"
 )
 
+// Action action instance
 type Action struct {
 	uuid     string
 	handlers map[string][]EventHandler
@@ -32,10 +33,12 @@ func newAction(uuid string) *Action {
 	return action
 }
 
+// RegisterHandler Register event handler to specified event. handlers can be multiple(append slice)
 func (action *Action) RegisterHandler(eventName string, handler EventHandler) {
 	action.handlers[eventName] = append(action.handlers[eventName], handler)
 }
 
+// Contexts get contexts
 func (action *Action) Contexts() []context.Context {
 	cs := make([]context.Context, len(action.contexts))
 	for _, c := range action.contexts {

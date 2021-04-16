@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// RegistrationParams Params for registering streamdeck plugin.
 type RegistrationParams struct {
 	Port          int
 	PluginUUID    string
@@ -12,6 +13,7 @@ type RegistrationParams struct {
 	Info          string
 }
 
+// ParseRegistrationParams Parse parameters. Normally you should use os.Args .
 func ParseRegistrationParams(args []string) (RegistrationParams, error) {
 	f := flag.NewFlagSet("registration_params", flag.ContinueOnError)
 

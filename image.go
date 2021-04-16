@@ -8,6 +8,7 @@ import (
 	"image/png"
 )
 
+// Image Generate new base64 image string from image.Image.
 func Image(i image.Image) (string, error) {
 	var b bytes.Buffer
 

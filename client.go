@@ -20,12 +20,15 @@ var (
 	logger = log.New(ioutil.Discard, "streamdeck", log.LstdFlags)
 )
 
+// Log Get logger
 func Log() *log.Logger {
 	return logger
 }
 
+// EventHandler Event handler func
 type EventHandler func(ctx context.Context, client *Client, event Event) error
 
+// Client StreamDeck communicating client
 type Client struct {
 	ctx       context.Context
 	params    RegistrationParams
@@ -36,6 +39,7 @@ type Client struct {
 	sendMutex sync.Mutex
 }
 
+// NewClient Get new client from specified context/params. you can specify "os.Args".
 func NewClient(ctx context.Context, params RegistrationParams) *Client {
 	return &Client{
 		ctx:      ctx,
@@ -45,6 +49,8 @@ func NewClient(ctx context.Context, params RegistrationParams) *Client {
 		done:     make(chan struct{}),
 	}
 }
+
+// Action Get action from uuid.
 func (client *Client) Action(uuid string) *Action {
 	_, ok := client.actions[uuid]
 	if !ok {
@@ -58,6 +64,7 @@ func (client *Client) RegisterNoActionHandler(eventName string, handler EventHan
 	client.handlers[eventName] = append(client.handlers[eventName], handler)
 }
 
+// Run Start communicating with StreamDeck software
 func (client *Client) Run() error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
@@ -154,62 +161,77 @@ func (client *Client) send(event Event) error {
 	return client.c.WriteJSON(event)
 }
 
+// SetSettings Save data persistently for the action's instance.
 func (client *Client) SetSettings(ctx context.Context, settings interface{}) error {
 	return client.send(NewEvent(ctx, SetSettings, settings))
 }
 
+// GetSettings Request the persistent data for the action's instance.
 func (client *Client) GetSettings(ctx context.Context) error {
 	return client.send(NewEvent(ctx, GetSettings, nil))
 }
 
+// SetGlobalSettings Save data securely and globally for the plugin.
 func (client *Client) SetGlobalSettings(ctx context.Context, settings interface{}) error {
 	return client.send(NewEvent(ctx, SetGlobalSettings, settings))
 }
 
+// GetGlobalSettings Request the global persistent data
 func (client *Client) GetGlobalSettings(ctx context.Context) error {
 	return client.send(NewEvent(ctx, GetGlobalSettings, nil))
 }
 
+// OpenURL Open an URL in the default browser.
 func (client *Client) OpenURL(ctx context.Context, u url.URL) error {
 	return client.send(NewEvent(ctx, OpenURL, OpenURLPayload{URL: u.String()}))
 }
 
+// LogMessage Write a debug log to the logs file.
 func (client *Client) LogMessage(message string) error {
 	return client.send(NewEvent(nil, LogMessage, LogMessagePayload{Message: message}))
 }
 
+// SetTitle Dynamically change the title of an instance of an action.
 func (client *Client) SetTitle(ctx context.Context, title string, target Target) error {
 	return client.send(NewEvent(ctx, SetTitle, SetTitlePayload{Title: title, Target: target}))
 }
 
+// SetImage Dynamically change the image displayed by an instance of an action.
 func (client *Client) SetImage(ctx context.Context, base64image string, target Target) error {
 	return client.send(NewEvent(ctx, SetImage, SetImagePayload{Base64Image: base64image, Target: target}))
 }
 
+// ShowAlert Temporarily show an alert icon on the image displayed by an instance of an action.
 func (client *Client) ShowAlert(ctx context.Context) error {
 	return client.send(NewEvent(ctx, ShowAlert, nil))
 }
 
+// ShowOk Temporarily show an OK checkmark icon on the image displayed by an instance of an action
 func (client *Client) ShowOk(ctx context.Context) error {
 	return client.send(NewEvent(ctx, ShowOk, nil))
 }
 
+// SetState Change the state of the action's instance supporting multiple states.
 func (client *Client) SetState(ctx context.Context, state int) error {
 	return client.send(NewEvent(ctx, SetState, SetStatePayload{State: state}))
 }
 
+// SwitchToProfile Switch to one of the preconfigured read-only profiles.
 func (client *Client) SwitchToProfile(ctx context.Context, profile string) error {
 	return client.send(NewEvent(ctx, SwitchToProfile, SwitchProfilePayload{Profile: profile}))
 }
 
+// SendToPropertyInspector Send a payload to the Property Inspector.
 func (client *Client) SendToPropertyInspector(ctx context.Context, payload interface{}) error {
 	return client.send(NewEvent(ctx, SendToPropertyInspector, payload))
 }
 
+// SendToPlugin Send a payload to the plugin.
 func (client *Client) SendToPlugin(ctx context.Context, payload interface{}) error {
 	return client.send(NewEvent(ctx, SendToPlugin, payload))
 }
 
+// Close close client
 func (client *Client) Close() error {
 	err := client.c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 	if err != nil {
