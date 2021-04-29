@@ -108,12 +108,14 @@ func (client *Client) Run() error {
 
 			if event.Action == "" {
 				for _, f := range client.handlers[event.Event] {
-					if err := f(ctx, client, event); err != nil {
-						logger.Printf("error in handler for event %v: %v\n", event.Event, err)
-						if err := client.ShowAlert(ctx); err != nil {
-							logger.Printf("error trying to show alert")
+					go func(f EventHandler) {
+						if err := f(ctx, client, event); err != nil {
+							logger.Printf("error in handler for event %v: %v\n", event.Event, err)
+							if err := client.ShowAlert(ctx); err != nil {
+								logger.Printf("error trying to show alert")
+							}
 						}
-					}
+					}(f)
 				}
 				continue
 			}
@@ -125,9 +127,11 @@ func (client *Client) Run() error {
 			}
 
 			for _, f := range action.handlers[event.Event] {
-				if err := f(ctx, client, event); err != nil {
-					logger.Printf("error in handler for event %v: %v\n", event.Event, err)
-				}
+				go func(f EventHandler) {
+					if err := f(ctx, client, event); err != nil {
+						logger.Printf("error in handler for event %v: %v\n", event.Event, err)
+					}
+				}(f)
 			}
 		}
 	}()
