@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"io/ioutil"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/FlowingSPDG/streamdeck"
@@ -26,12 +28,18 @@ type PropertyInspectorSettings struct {
 }
 
 func main() {
-	f, err := ioutil.TempFile("", "streamdeck-cpu.log")
+	exePath, err := os.Executable()
 	if err != nil {
-		log.Fatalf("error creating tempfile: %v", err)
+		panic(err)
+	}
+	exeDir := filepath.Dir(exePath)
+	f, err := os.Create(path.Join(exeDir, "streamdeck-cpu.log"))
+	if err != nil {
+		panic(err)
 	}
 	defer f.Close()
-	log.SetOutput(f)
+	// log.SetOutput(f)
+	log.SetOutput(os.Stdout)
 
 	ctx := context.Background()
 	if err := run(ctx); err != nil {
@@ -40,10 +48,12 @@ func main() {
 }
 
 func run(ctx context.Context) error {
+	fmt.Println("args:", strings.Join(os.Args, " "))
 	params, err := streamdeck.ParseRegistrationParams(os.Args)
 	if err != nil {
 		return err
 	}
+	fmt.Println("params:", params)
 
 	client := streamdeck.NewClient(ctx, params)
 	setup(client)
@@ -58,15 +68,33 @@ func setup(client *streamdeck.Client) {
 	contexts := make(map[string]struct{})
 
 	action.RegisterHandler(streamdeck.SendToPlugin, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
+		b, _ := json.MarshalIndent(event, "", "	")
+		fmt.Printf("event:%s\n", b)
+		return json.Unmarshal(event.Payload, pi)
+	})
+
+	action.RegisterHandler(streamdeck.KeyDown, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
+		b, _ := json.MarshalIndent(event, "", "	")
+		fmt.Printf("event:%s\n", b)
+		return json.Unmarshal(event.Payload, pi)
+	})
+
+	action.RegisterHandler(streamdeck.KeyUp, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
+		b, _ := json.MarshalIndent(event, "", "	")
+		fmt.Printf("event:%s\n", b)
 		return json.Unmarshal(event.Payload, pi)
 	})
 
 	action.RegisterHandler(streamdeck.WillAppear, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
+		b, _ := json.MarshalIndent(event, "", "	")
+		fmt.Printf("event:%s\n", b)
 		contexts[event.Context] = struct{}{}
 		return nil
 	})
 
 	action.RegisterHandler(streamdeck.WillDisappear, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
+		b, _ := json.MarshalIndent(event, "", "	")
+		fmt.Printf("event:%s\n", b)
 		delete(contexts, event.Context)
 		return nil
 	})
@@ -81,7 +109,7 @@ func setup(client *streamdeck.Client) {
 
 			r, err := cpu.Percent(0, false)
 			if err != nil {
-				log.Printf("error getting CPU reading: %v\n", err)
+				fmt.Printf("error getting CPU reading: %v\n", err)
 			}
 			readings[imgX-1] = r[0]
 
@@ -91,12 +119,12 @@ func setup(client *streamdeck.Client) {
 
 				img, err := streamdeck.Image(graph(readings))
 				if err != nil {
-					log.Printf("error creating image: %v\n", err)
+					fmt.Printf("error creating image: %v\n", err)
 					continue
 				}
 
 				if err := client.SetImage(ctx, img, streamdeck.HardwareAndSoftware); err != nil {
-					log.Printf("error setting image: %v\n", err)
+					fmt.Printf("error setting image: %v\n", err)
 					continue
 				}
 
@@ -106,7 +134,7 @@ func setup(client *streamdeck.Client) {
 				}
 
 				if err := client.SetTitle(ctx, title, streamdeck.HardwareAndSoftware); err != nil {
-					log.Printf("error setting title: %v\n", err)
+					fmt.Printf("error setting title: %v\n", err)
 					continue
 				}
 			}
