@@ -65,6 +65,8 @@ func setup(client *streamdeck.Client) {
 	action := client.Action("dev.samwho.streamdeck.cpu")
 
 	pi := &PropertyInspectorSettings{}
+	// This is not goroutine safe
+	// Use sync.Map instead for goroutine safe map
 	contexts := make(map[string]struct{})
 
 	action.RegisterHandler(streamdeck.SendToPlugin, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {

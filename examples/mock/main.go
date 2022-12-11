@@ -42,6 +42,16 @@ func (m *mockServer) KeyDown(ctx context.Context, payload interface{}) error {
 	return m.SendEvent(ev)
 }
 
+func (m *mockServer) WillAppear(ctx context.Context, payload interface{}) error {
+	ev := streamdeck.NewEvent(ctx, streamdeck.WillAppear, payload)
+	return m.SendEvent(ev)
+}
+
+func (m *mockServer) WillDisappear(ctx context.Context, payload interface{}) error {
+	ev := streamdeck.NewEvent(ctx, streamdeck.WillDisappear, payload)
+	return m.SendEvent(ev)
+}
+
 func (m *mockServer) KeyUp(ctx context.Context, payload interface{}) error {
 	ev := streamdeck.NewEvent(ctx, streamdeck.KeyUp, payload)
 	return m.SendEvent(ev)
@@ -68,6 +78,8 @@ func completer(d prompt.Document) []prompt.Suggest {
 		{Text: streamdeck.KeyDown, Description: "Send KeyDown event"},
 		{Text: streamdeck.KeyUp, Description: "Send KeyUp event"},
 		{Text: streamdeck.SendToPlugin, Description: "Send SendToPlugin event"},
+		{Text: streamdeck.WillAppear, Description: "Send WillAppear event"},
+		{Text: streamdeck.WillDisappear, Description: "Send WillDisappear event"},
 		{Text: exit, Description: "Shutdown mock server"},
 	}
 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
@@ -108,6 +120,10 @@ func main() {
 			m.KeyUp(ctx, nil)
 		case streamdeck.SendToPlugin:
 			m.SendToPlugin(ctx, nil)
+		case streamdeck.WillAppear:
+			m.WillAppear(ctx, nil)
+		case streamdeck.WillDisappear:
+			m.WillDisappear(ctx, nil)
 		default:
 			m.SendEvent(streamdeck.NewEvent(ctx, t, nil))
 		}

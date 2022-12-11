@@ -47,6 +47,8 @@ func run(ctx context.Context) error {
 
 func setup(client *streamdeck.Client) {
 	action := client.Action("dev.samwho.streamdeck.counter")
+	// This is not goroutine safe
+	// Use sync.Map instead for goroutine safe map
 	settings := make(map[string]*Settings)
 
 	action.RegisterHandler(streamdeck.WillAppear, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {

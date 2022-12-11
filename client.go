@@ -33,10 +33,15 @@ type Client struct {
 	ctx       context.Context
 	params    RegistrationParams
 	c         *websocket.Conn
-	actions   map[string]*Action
-	handlers  map[string][]EventHandler
+	actions   actions
+	handlers  eventHandlers
 	done      chan struct{}
 	sendMutex sync.Mutex
+}
+
+// map[string]*Action
+type actions struct {
+	m sync.Map
 }
 
 // NewClient Get new client from specified context/params. you can specify "os.Args".
@@ -44,24 +49,34 @@ func NewClient(ctx context.Context, params RegistrationParams) *Client {
 	return &Client{
 		ctx:      ctx,
 		params:   params,
-		actions:  make(map[string]*Action),
-		handlers: make(map[string][]EventHandler),
+		actions:  actions{},
+		handlers: eventHandlers{},
 		done:     make(chan struct{}),
 	}
 }
 
 // Action Get action from uuid.
 func (client *Client) Action(uuid string) *Action {
-	_, ok := client.actions[uuid]
+	val, ok := client.actions.m.Load(uuid)
+	var v *Action
 	if !ok {
-		client.actions[uuid] = newAction(uuid)
+		v := newAction(uuid)
+		client.actions.m.Store(uuid, v)
 	}
-	return client.actions[uuid]
+	v = val.(*Action)
+	return v
 }
 
 // RegisterNoActionHandler register event handler with no action such as "applicationDidLaunch".
 func (client *Client) RegisterNoActionHandler(eventName string, handler EventHandler) {
-	client.handlers[eventName] = append(client.handlers[eventName], handler)
+	handlers, ok := client.handlers.m.Load(eventName)
+	if !ok {
+		handlers = []EventHandler{}
+		client.handlers.m.Store(eventName, handlers)
+	}
+	hs := handlers.([]EventHandler)
+	hs = append(hs, handler)
+	client.handlers.m.Store(eventName, hs)
 }
 
 // Run Start communicating with StreamDeck software
@@ -107,7 +122,8 @@ func (client *Client) Run() error {
 			ctx = sdcontext.WithAction(ctx, event.Action)
 
 			if event.Action == "" {
-				for _, f := range client.handlers[event.Event] {
+				client.handlers.m.Range(func(key, value interface{}) bool {
+					f := value.(EventHandler)
 					go func(f EventHandler) {
 						if err := f(ctx, client, event); err != nil {
 							logger.Printf("error in handler for event %v: %v\n", event.Event, err)
@@ -116,23 +132,27 @@ func (client *Client) Run() error {
 							}
 						}
 					}(f)
-				}
+					return true
+				})
 				continue
 			}
 
-			action, ok := client.actions[event.Action]
+			a, ok := client.actions.m.Load(event.Action)
+			action := a.(*Action)
 			if !ok {
 				action = client.Action(event.Action)
 				action.addContext(ctx)
 			}
 
-			for _, f := range action.handlers[event.Event] {
+			action.handlers.m.Range(func(key, value interface{}) bool {
+				f := value.(EventHandler)
 				go func(f EventHandler) {
 					if err := f(ctx, client, event); err != nil {
 						logger.Printf("error in handler for event %v: %v\n", event.Event, err)
 					}
 				}(f)
-			}
+				return true
+			})
 		}
 	}()
 
