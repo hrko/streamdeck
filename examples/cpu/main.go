@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/FlowingSPDG/streamdeck"
@@ -65,9 +66,7 @@ func setup(client *streamdeck.Client) {
 	action := client.Action("dev.samwho.streamdeck.cpu")
 
 	pi := &PropertyInspectorSettings{}
-	// This is not goroutine safe
-	// Use sync.Map instead for goroutine safe map
-	contexts := make(map[string]struct{})
+	contexts := sync.Map{}
 
 	action.RegisterHandler(streamdeck.SendToPlugin, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
 		b, _ := json.MarshalIndent(event, "", "	")
@@ -90,14 +89,14 @@ func setup(client *streamdeck.Client) {
 	action.RegisterHandler(streamdeck.WillAppear, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
 		b, _ := json.MarshalIndent(event, "", "	")
 		fmt.Printf("event:%s\n", b)
-		contexts[event.Context] = struct{}{}
+		contexts.Store(event.Context, struct{}{})
 		return nil
 	})
 
 	action.RegisterHandler(streamdeck.WillDisappear, func(ctx context.Context, client *streamdeck.Client, event streamdeck.Event) error {
 		b, _ := json.MarshalIndent(event, "", "	")
 		fmt.Printf("event:%s\n", b)
-		delete(contexts, event.Context)
+		contexts.Delete(event.Context)
 		return nil
 	})
 
@@ -115,19 +114,20 @@ func setup(client *streamdeck.Client) {
 			}
 			readings[imgX-1] = r[0]
 
-			for ctxStr := range contexts {
+			contexts.Range(func(key, value interface{}) bool {
+				ctxStr := value.(string)
 				ctx := context.Background()
 				ctx = sdcontext.WithContext(ctx, ctxStr)
 
 				img, err := streamdeck.Image(graph(readings))
 				if err != nil {
 					fmt.Printf("error creating image: %v\n", err)
-					continue
+					return true
 				}
 
 				if err := client.SetImage(ctx, img, streamdeck.HardwareAndSoftware); err != nil {
 					fmt.Printf("error setting image: %v\n", err)
-					continue
+					return true
 				}
 
 				title := ""
@@ -137,9 +137,10 @@ func setup(client *streamdeck.Client) {
 
 				if err := client.SetTitle(ctx, title, streamdeck.HardwareAndSoftware); err != nil {
 					fmt.Printf("error setting title: %v\n", err)
-					continue
+					return true
 				}
-			}
+				return true
+			})
 		}
 	}()
 }

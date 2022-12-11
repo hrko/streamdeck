@@ -47,11 +47,18 @@ type actions struct {
 // NewClient Get new client from specified context/params. you can specify "os.Args".
 func NewClient(ctx context.Context, params RegistrationParams) *Client {
 	return &Client{
-		ctx:      ctx,
-		params:   params,
-		actions:  actions{},
-		handlers: eventHandlers{},
-		done:     make(chan struct{}),
+		ctx:    ctx,
+		params: params,
+		c:      nil,
+		actions: actions{
+			m: sync.Map{},
+		},
+		handlers: eventHandlers{
+			mutex: sync.Mutex{},
+			m:     map[string][]EventHandler{},
+		},
+		done:      make(chan struct{}),
+		sendMutex: sync.Mutex{},
 	}
 }
 
@@ -61,23 +68,22 @@ func (client *Client) Action(uuid string) *Action {
 	var v *Action
 	if !ok {
 		v = newAction(uuid)
-		val = v
 		client.actions.m.Store(uuid, v)
 	}
-
-	return val.(*Action)
+	v = val.(*Action)
+	return v
 }
 
 // RegisterNoActionHandler register event handler with no action such as "applicationDidLaunch".
 func (client *Client) RegisterNoActionHandler(eventName string, handler EventHandler) {
-	handlers, ok := client.handlers.m.Load(eventName)
+	client.handlers.mutex.Lock()
+	defer client.handlers.mutex.Unlock()
+	handlers, ok := client.handlers.m[eventName]
 	if !ok {
 		handlers = []EventHandler{}
-		client.handlers.m.Store(eventName, handlers)
+		client.handlers.m[eventName] = handlers
 	}
-	hs := handlers.([]EventHandler)
-	hs = append(hs, handler)
-	client.handlers.m.Store(eventName, hs)
+	client.handlers.m[eventName] = append(client.handlers.m[eventName], handler)
 }
 
 // Run Start communicating with StreamDeck software
@@ -123,37 +129,38 @@ func (client *Client) Run() error {
 			ctx = sdcontext.WithAction(ctx, event.Action)
 
 			if event.Action == "" {
-				client.handlers.m.Range(func(key, value interface{}) bool {
-					f := value.(EventHandler)
-					go func(f EventHandler) {
-						if err := f(ctx, client, event); err != nil {
-							logger.Printf("error in handler for event %v: %v\n", event.Event, err)
-							if err := client.ShowAlert(ctx); err != nil {
-								logger.Printf("error trying to show alert")
+				for _, fs := range client.handlers.m {
+					for _, f := range fs {
+						client.handlers.mutex.Lock()
+						go func(f EventHandler) {
+							defer client.handlers.mutex.Unlock()
+							if err := f(ctx, client, event); err != nil {
+								logger.Printf("error in handler for event %v: %v\n", event.Event, err)
+								if err := client.ShowAlert(ctx); err != nil {
+									logger.Printf("error trying to show alert")
+								}
 							}
-						}
-					}(f)
-					return true
-				})
+						}(f)
+					}
+					return
+				}
 				continue
 			}
 
 			a, ok := client.actions.m.Load(event.Action)
-			action := a.(*Action)
+			action := a.(*Action) // panic if fail
 			if !ok {
 				action = client.Action(event.Action)
 				action.addContext(ctx)
 			}
 
 			action.handlers.m.Range(func(key, value interface{}) bool {
-				hs := value.([]EventHandler)
-				for _, handler := range hs {
-					go func(c context.Context, cl *Client, f EventHandler, ev Event) {
-						if err := f(c, cl, ev); err != nil {
-							logger.Printf("error in handler for event %v: %v\n", ev.Event, err)
-						}
-					}(ctx, client, handler, event)
-				}
+				f := value.(EventHandler)
+				go func(f EventHandler) {
+					if err := f(ctx, client, event); err != nil {
+						logger.Printf("error in handler for event %v: %v\n", event.Event, err)
+					}
+				}(f)
 				return true
 			})
 		}
