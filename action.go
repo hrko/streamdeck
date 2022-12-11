@@ -14,9 +14,9 @@ type Action struct {
 	contexts contexts
 }
 
-// map[sring][]EventHandler
 type eventHandlers struct {
-	m sync.Map
+	mutex sync.Mutex
+	m     map[string][]EventHandler
 }
 
 // map[string]context.Context
@@ -26,8 +26,11 @@ type contexts struct {
 
 func newAction(uuid string) *Action {
 	action := &Action{
-		uuid:     uuid,
-		handlers: eventHandlers{},
+		uuid: uuid,
+		handlers: eventHandlers{
+			mutex: sync.Mutex{},
+			m:     map[string][]EventHandler{},
+		},
 		contexts: contexts{m: sync.Map{}},
 	}
 
@@ -46,14 +49,14 @@ func newAction(uuid string) *Action {
 
 // RegisterHandler Register event handler to specified event. handlers can be multiple(append slice)
 func (action *Action) RegisterHandler(eventName string, handler EventHandler) {
-	handlers, ok := action.handlers.m.Load(eventName)
+	action.handlers.mutex.Lock()
+	defer action.handlers.mutex.Unlock()
+
+	_, ok := action.handlers.m[eventName]
 	if !ok {
-		handlers = []EventHandler{}
-		action.handlers.m.Store(eventName, handlers)
+		action.handlers.m[eventName] = []EventHandler{}
 	}
-	hs := handlers.([]EventHandler)
-	hs = append(hs, handler)
-	action.handlers.m.Store(eventName, hs)
+	action.handlers.m[eventName] = append(action.handlers.m[eventName], handler)
 }
 
 // Contexts get contexts
