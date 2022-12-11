@@ -54,8 +54,7 @@ func NewClient(ctx context.Context, params RegistrationParams) *Client {
 			m: sync.Map{},
 		},
 		handlers: eventHandlers{
-			mutex: sync.Mutex{},
-			m:     map[string][]EventHandler{},
+			m: sync.Map{},
 		},
 		done:      make(chan struct{}),
 		sendMutex: sync.Mutex{},
@@ -64,7 +63,7 @@ func NewClient(ctx context.Context, params RegistrationParams) *Client {
 
 // Action Get action from uuid.
 func (client *Client) Action(uuid string) *Action {
-	val, ok := client.actions.m.Load(uuid)
+	val, ok := client.actions.m.LoadOrStore(uuid, newAction(uuid))
 	var v *Action
 	if !ok {
 		v = newAction(uuid)
@@ -76,14 +75,19 @@ func (client *Client) Action(uuid string) *Action {
 
 // RegisterNoActionHandler register event handler with no action such as "applicationDidLaunch".
 func (client *Client) RegisterNoActionHandler(eventName string, handler EventHandler) {
-	client.handlers.mutex.Lock()
-	defer client.handlers.mutex.Unlock()
-	handlers, ok := client.handlers.m[eventName]
-	if !ok {
-		handlers = []EventHandler{}
-		client.handlers.m[eventName] = handlers
+	eh := eventHandlerSlice{
+		mutex: &sync.Mutex{},
+		eh:    []EventHandler{},
 	}
-	client.handlers.m[eventName] = append(client.handlers.m[eventName], handler)
+
+	ehi, _ := client.handlers.m.LoadOrStore(eventName, eh)
+	eh = ehi.(eventHandlerSlice)
+
+	eh.mutex.Lock()
+	defer eh.mutex.Unlock()
+	eh.eh = append(eh.eh, handler)
+
+	client.handlers.m.Store(eventName, eh)
 }
 
 // Run Start communicating with StreamDeck software
@@ -129,40 +133,27 @@ func (client *Client) Run() error {
 			ctx = sdcontext.WithAction(ctx, event.Action)
 
 			if event.Action == "" {
-				for _, fs := range client.handlers.m {
-					for _, f := range fs {
-						client.handlers.mutex.Lock()
-						go func(f EventHandler) {
-							defer client.handlers.mutex.Unlock()
-							if err := f(ctx, client, event); err != nil {
-								logger.Printf("error in handler for event %v: %v\n", event.Event, err)
-								if err := client.ShowAlert(ctx); err != nil {
-									logger.Printf("error trying to show alert")
-								}
-							}
-						}(f)
-					}
-					return
+				v, ok := client.handlers.m.Load(event.Action)
+				if ok {
+					eh := v.(eventHandlerSlice)
+					eh.Execute(ctx, client, event)
 				}
-				continue
 			}
 
+			var action *Action
 			a, ok := client.actions.m.Load(event.Action)
-			action := a.(*Action) // panic if fail
 			if !ok {
 				action = client.Action(event.Action)
 				action.addContext(ctx)
+			} else {
+				action = a.(*Action)
 			}
 
-			action.handlers.m.Range(func(key, value interface{}) bool {
-				f := value.(EventHandler)
-				go func(f EventHandler) {
-					if err := f(ctx, client, event); err != nil {
-						logger.Printf("error in handler for event %v: %v\n", event.Event, err)
-					}
-				}(f)
-				return true
-			})
+			v, ok := action.handlers.m.Load(event.Event)
+			if ok {
+				eh := v.(eventHandlerSlice)
+				eh.Execute(ctx, client, event)
+			}
 		}
 	}()
 

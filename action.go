@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	sdcontext "github.com/FlowingSPDG/streamdeck/context"
+	"golang.org/x/sync/errgroup"
 )
 
 // Action action instance
@@ -15,8 +16,24 @@ type Action struct {
 }
 
 type eventHandlers struct {
-	mutex sync.Mutex
-	m     map[string][]EventHandler
+	m sync.Map // map[string]eventHandlerSlice
+}
+
+// []EventHandler
+type eventHandlerSlice struct {
+	mutex *sync.Mutex
+	eh    []EventHandler
+}
+
+func (e *eventHandlerSlice) Execute(ctx context.Context, client *Client, event Event) error {
+	eg, ectx := errgroup.WithContext(ctx)
+	for _, handler := range e.eh {
+		h := handler
+		eg.Go(func() error {
+			return h(ectx, client, event)
+		})
+	}
+	return eg.Wait()
 }
 
 // map[string]context.Context
@@ -28,8 +45,7 @@ func newAction(uuid string) *Action {
 	action := &Action{
 		uuid: uuid,
 		handlers: eventHandlers{
-			mutex: sync.Mutex{},
-			m:     map[string][]EventHandler{},
+			m: sync.Map{},
 		},
 		contexts: contexts{m: sync.Map{}},
 	}
@@ -49,14 +65,21 @@ func newAction(uuid string) *Action {
 
 // RegisterHandler Register event handler to specified event. handlers can be multiple(append slice)
 func (action *Action) RegisterHandler(eventName string, handler EventHandler) {
-	action.handlers.mutex.Lock()
-	defer action.handlers.mutex.Unlock()
-
-	_, ok := action.handlers.m[eventName]
-	if !ok {
-		action.handlers.m[eventName] = []EventHandler{}
+	eh := eventHandlerSlice{
+		mutex: &sync.Mutex{},
+		eh:    []EventHandler{},
 	}
-	action.handlers.m[eventName] = append(action.handlers.m[eventName], handler)
+
+	ehi, loaded := action.handlers.m.LoadOrStore(eventName, eh)
+	if loaded {
+		eh = ehi.(eventHandlerSlice)
+	}
+
+	eh.mutex.Lock()
+	defer eh.mutex.Unlock()
+	eh.eh = append(eh.eh, handler)
+
+	action.handlers.m.Store(eventName, eh)
 }
 
 // Contexts get contexts
