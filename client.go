@@ -60,7 +60,7 @@ func (client *Client) Action(uuid string) *Action {
 	val, ok := client.actions.m.Load(uuid)
 	var v *Action
 	if !ok {
-		v := newAction(uuid)
+		v = newAction(uuid)
 		client.actions.m.Store(uuid, v)
 	}
 	v = val.(*Action)
