@@ -61,10 +61,11 @@ func (client *Client) Action(uuid string) *Action {
 	var v *Action
 	if !ok {
 		v = newAction(uuid)
+		val = v
 		client.actions.m.Store(uuid, v)
 	}
-	v = val.(*Action)
-	return v
+
+	return val.(*Action)
 }
 
 // RegisterNoActionHandler register event handler with no action such as "applicationDidLaunch".
@@ -145,12 +146,14 @@ func (client *Client) Run() error {
 			}
 
 			action.handlers.m.Range(func(key, value interface{}) bool {
-				f := value.(EventHandler)
-				go func(f EventHandler) {
-					if err := f(ctx, client, event); err != nil {
-						logger.Printf("error in handler for event %v: %v\n", event.Event, err)
-					}
-				}(f)
+				hs := value.([]EventHandler)
+				for _, handler := range hs {
+					go func(c context.Context, cl *Client, f EventHandler, ev Event) {
+						if err := f(c, cl, ev); err != nil {
+							logger.Printf("error in handler for event %v: %v\n", ev.Event, err)
+						}
+					}(ctx, client, handler, event)
+				}
 				return true
 			})
 		}
