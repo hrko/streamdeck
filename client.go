@@ -61,6 +61,11 @@ func NewClient(ctx context.Context, params RegistrationParams) *Client {
 	}
 }
 
+// UUID get plugin UUID
+func (client *Client) UUID() string {
+	return client.params.PluginUUID
+}
+
 // Action Get action from uuid.
 func (client *Client) Action(uuid string) *Action {
 	v := newAction(uuid)
