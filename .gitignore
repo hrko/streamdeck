@@ -24,7 +24,7 @@
 /Godeps/
 
 ### VisualStudioCode ###
-.vscode/
+./.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -61,5 +61,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.gitignore.io/api/go,windows,visualstudiocode
-examples/cpu/cpu
 *.log
+*.wasm
+*.DS_Store
+*streamDeckPlugin
