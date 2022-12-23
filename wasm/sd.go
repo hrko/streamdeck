@@ -15,8 +15,8 @@ type SDClient[SettingsT Settings] struct {
 	c                 *websocket.Conn
 	uuid              string
 	registerEventName string
-	actionInfo        inActionInfo[SettingsT]
-	inInfo            inInfo
+	actionInfo        streamdeck.ActionInfo[SettingsT]
+	inInfo            streamdeck.Info
 	// runningApps // ?
 	isQT bool
 

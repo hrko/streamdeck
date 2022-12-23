@@ -1,6 +1,7 @@
 package streamdeck
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 )
@@ -10,12 +11,68 @@ type RegistrationParams struct {
 	Port          int
 	PluginUUID    string
 	RegisterEvent string
-	Info          string
+	Info          Info
+}
+
+type Application struct {
+	Font            string `json:"font"`
+	Language        string `json:"language"`
+	Platform        string `json:"platform"`
+	PlatformVersion string `json:"platformVersion"`
+	Version         string `json:"version"`
+}
+
+type Plugin struct {
+	UUID    string `json:"uuid"`
+	Version string `json:"version"`
+}
+
+type Colors struct {
+	ButtonPressedBackgroundColor string `json:"buttonPressedBackgroundColor"`
+	ButtonPressedBorderColor     string `json:"buttonPressedBorderColor"`
+	ButtonPressedTextColor       string `json:"buttonPressedTextColor"`
+	DisabledColor                string `json:"disabledColor"`
+	HighlightColor               string `json:"highlightColor"`
+	MouseDownColor               string `json:"mouseDownColor"`
+}
+
+type Size struct {
+	Columns int `json:"columns"`
+	Rows    int `json:"rows"`
+}
+
+type Device struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Size Size   `json:"size"`
+	Type int    `json:"type"`
+}
+
+type ActionInfoPayload[SettingsT any] struct {
+	Coordinates Coordinates `json:"coordinates,omitempty"`
+	Settings    SettingsT   `json:"settings,omitempty"`
+}
+
+type ActionInfo[SettingsT any] struct {
+	Action  string                       `json:"action"`
+	Context string                       `json:"context"`
+	Device  string                       `json:"device"`
+	Payload ActionInfoPayload[SettingsT] `json:"payload"`
+}
+
+type Info struct {
+	Application      Application `json:"application"`
+	Plugin           Plugin      `json:"plugin"`
+	DevicePixelRatio int         `json:"devicePixelRatio"`
+	Colors           Colors      `json:"colors"`
+	Devices          []Device    `json:"devices"`
 }
 
 // ParseRegistrationParams Parse parameters. Normally you should use os.Args .
 func ParseRegistrationParams(args []string) (RegistrationParams, error) {
 	f := flag.NewFlagSet("registration_params", flag.ContinueOnError)
+
+	ret := RegistrationParams{}
 
 	port := f.Int("port", -1, "")
 	pluginUUID := f.String("pluginUUID", "", "")
@@ -23,26 +80,31 @@ func ParseRegistrationParams(args []string) (RegistrationParams, error) {
 	info := f.String("info", "", "")
 
 	if err := f.Parse(args[1:]); err != nil {
-		return RegistrationParams{}, err
+		return ret, err
 	}
 
 	if *port == -1 {
-		return RegistrationParams{}, fmt.Errorf("missing -port flag")
+		return ret, fmt.Errorf("missing -port flag")
 	}
+	ret.Port = *port
+
 	if *pluginUUID == "" {
-		return RegistrationParams{}, fmt.Errorf("missing -pluginUUID flag")
+		return ret, fmt.Errorf("missing -pluginUUID flag")
 	}
+	ret.PluginUUID = *pluginUUID
+
 	if *registerEvent == "" {
-		return RegistrationParams{}, fmt.Errorf("missing -registerEvent flag")
+		return ret, fmt.Errorf("missing -registerEvent flag")
 	}
+	ret.RegisterEvent = *registerEvent
+
 	if *info == "" {
-		return RegistrationParams{}, fmt.Errorf("missing -info flag")
+		return ret, fmt.Errorf("missing -info flag")
+	}
+	infob := []byte(*info)
+	if err := json.Unmarshal(infob, &ret.Info); err != nil {
+		return ret, err
 	}
 
-	return RegistrationParams{
-		Port:          *port,
-		PluginUUID:    *pluginUUID,
-		RegisterEvent: *registerEvent,
-		Info:          *info,
-	}, nil
+	return ret, nil
 }

@@ -20,12 +20,12 @@ func InitializePropertyInspector[S Settings](ctx context.Context, s S) (*SDClien
 	inPort := js.Global().Get("port").Int()
 	inPropertyInspectorUUID := js.Global().Get("uuid").String()
 	inRegisterEvent := js.Global().Get("registerEventName").String() // should be "registerPropertyInspector"
-	inInfo := inInfo{}
+	inInfo := streamdeck.Info{}
 	if err := json.Unmarshal([]byte(js.Global().Get("Info").String()), &inInfo); err != nil {
 		fmt.Println("Failed to parse inInfo:", err)
 		return nil, err
 	}
-	inActionInfo := inActionInfo[S]{}
+	inActionInfo := streamdeck.ActionInfo[S]{}
 	if err := json.Unmarshal([]byte(js.Global().Get("actionInfo").String()), &inActionInfo); err != nil {
 		fmt.Println("Failed to parse actionInfo:", err)
 		return nil, err
