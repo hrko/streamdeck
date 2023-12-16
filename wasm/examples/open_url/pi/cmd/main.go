@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"syscall/js"
 
-	"github.com/FlowingSPDG/streamdeck"
-	"github.com/FlowingSPDG/streamdeck/wasm"
+	"github.com/hrko/streamdeck"
+	"github.com/hrko/streamdeck/wasm"
 
-	"github.com/FlowingSPDG/streamdeck/wasm/examples/open_url/models"
+	"github.com/hrko/streamdeck/wasm/examples/open_url/models"
 )
 
 func main() {

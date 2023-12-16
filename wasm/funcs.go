@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"syscall/js"
 
-	"github.com/FlowingSPDG/streamdeck"
+	"github.com/hrko/streamdeck"
 )
 
 // TODO: スライスの境界外アクセスを止める

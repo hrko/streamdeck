@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/FlowingSPDG/streamdeck"
-	sdcontext "github.com/FlowingSPDG/streamdeck/context"
+	"github.com/hrko/streamdeck"
+	sdcontext "github.com/hrko/streamdeck/context"
 
-	"github.com/FlowingSPDG/streamdeck/wasm/examples/open_url/models"
+	"github.com/hrko/streamdeck/wasm/examples/open_url/models"
 )
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
 				c.SendToPropertyInspector(ctx, &models.Settings{URL: "https://go.dev/"})
 
 				time.Sleep(time.Second)
-				c.SendToPropertyInspector(ctx, &models.Settings{URL: "https://github.com/FlowingSPDG/streamdeck"})
+				c.SendToPropertyInspector(ctx, &models.Settings{URL: "https://github.com/hrko/streamdeck"})
 			}
 		}
 	}()

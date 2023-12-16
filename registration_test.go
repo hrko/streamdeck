@@ -3,7 +3,7 @@ package streamdeck_test
 import (
 	"testing"
 
-	"github.com/FlowingSPDG/streamdeck"
+	"github.com/hrko/streamdeck"
 )
 
 func TestParseRegistrationParams(t *testing.T) {

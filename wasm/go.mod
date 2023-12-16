@@ -1,9 +1,9 @@
-module github.com/FlowingSPDG/streamdeck/wasm
+module github.com/hrko/streamdeck/wasm
 
 go 1.19
 
 require (
-	github.com/FlowingSPDG/streamdeck v0.0.0-20221216133737-3e9f8326b4bf
+	github.com/hrko/streamdeck v0.0.0-20221216133737-3e9f8326b4bf
 	nhooyr.io/websocket v1.8.7
 )
 
@@ -13,4 +13,4 @@ require (
 )
 
 // streamdeck package should be relative path
-replace github.com/FlowingSPDG/streamdeck => ../
+replace github.com/hrko/streamdeck => ../

@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/FlowingSPDG/streamdeck"
+	"github.com/hrko/streamdeck"
 )
 
 type Settings struct {

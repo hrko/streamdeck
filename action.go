@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	sdcontext "github.com/FlowingSPDG/streamdeck/context"
+	sdcontext "github.com/hrko/streamdeck/context"
 	"golang.org/x/sync/errgroup"
 )
 

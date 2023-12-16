@@ -8,8 +8,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/FlowingSPDG/streamdeck"
 	"github.com/c-bata/go-prompt"
+	"github.com/hrko/streamdeck"
 	"github.com/olahol/melody"
 )
 

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"syscall/js"
 
-	"github.com/FlowingSPDG/streamdeck"
+	"github.com/hrko/streamdeck"
 	"nhooyr.io/websocket"
 )
 

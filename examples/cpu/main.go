@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/FlowingSPDG/streamdeck"
-	sdcontext "github.com/FlowingSPDG/streamdeck/context"
+	"github.com/hrko/streamdeck"
+	sdcontext "github.com/hrko/streamdeck/context"
 	"github.com/shirou/gopsutil/cpu"
 )
 

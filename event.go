@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	sdcontext "github.com/FlowingSPDG/streamdeck/context"
+	sdcontext "github.com/hrko/streamdeck/context"
 )
 
 // Event JSON struct. {"action":"com.elgato.example.action1","event":"keyDown","context":"","device":"","payload":{"settings":{},"coordinates":{"column":3,"row":1},"state":0,"userDesiredState":1,"isInMultiAction":false}}

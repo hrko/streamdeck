@@ -8,7 +8,7 @@ import (
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
 
-	"github.com/FlowingSPDG/streamdeck"
+	"github.com/hrko/streamdeck"
 )
 
 type SDClient[SettingsT Settings] struct {

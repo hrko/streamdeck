@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	sdcontext "github.com/FlowingSPDG/streamdeck/context"
+	sdcontext "github.com/hrko/streamdeck/context"
 
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
