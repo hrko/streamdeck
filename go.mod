@@ -1,6 +1,6 @@
-module github.com/FlowingSPDG/streamdeck
+module github.com/hrko/streamdeck
 
-go 1.19
+go 1.21
 
 require (
 	github.com/c-bata/go-prompt v0.2.6
