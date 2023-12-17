@@ -43,6 +43,7 @@ type DidReceiveSettingsPayload[T any] struct {
 	Settings        T           `json:"settings,omitempty"`
 	Coordinates     Coordinates `json:"coordinates,omitempty"`
 	IsInMultiAction bool        `json:"isInMultiAction,omitempty"`
+	Controller      string      `json:"controller,omitempty"` // Encoder or Keypad. Not documented.
 }
 
 // Coordinates The coordinates of the action triggered.
@@ -80,6 +81,7 @@ type TouchTapPayload[T any] struct {
 	Coordinates Coordinates `json:"coordinates,omitempty"`
 	TapPos      [2]int      `json:"tapPos,omitempty"`
 	Hold        bool        `json:"hold,omitempty"`
+	Controller  string      `json:"controller,omitempty"` // Encoder. Not documented.
 }
 
 type DialDownPayload[T any] struct {
@@ -99,6 +101,7 @@ type DialRotatePayload[T any] struct {
 	Coordinates Coordinates `json:"coordinates,omitempty"`
 	Ticks       int         `json:"ticks,omitempty"`
 	Pressed     bool        `json:"pressed,omitempty"`
+	Controller  string      `json:"controller,omitempty"` // Encoder. Not documented.
 }
 
 // WillAppearPayload A json object
@@ -107,6 +110,7 @@ type WillAppearPayload[T any] struct {
 	Coordinates     Coordinates `json:"coordinates,omitempty"`
 	State           int         `json:"state,omitempty"`
 	IsInMultiAction bool        `json:"isInMultiAction,omitempty"`
+	Controller      string      `json:"controller,omitempty"` // Encoder or Keypad. Not documented.
 }
 
 // WillDisappearPayload A json object
@@ -115,6 +119,7 @@ type WillDisappearPayload[T any] struct {
 	Coordinates     Coordinates `json:"coordinates,omitempty"`
 	State           int         `json:"state,omitempty"`
 	IsInMultiAction bool        `json:"isInMultiAction,omitempty"`
+	Controller      string      `json:"controller,omitempty"` // Encoder or Keypad. Not documented.
 }
 
 // TitleParametersDidChangePayload A json object
@@ -124,6 +129,7 @@ type TitleParametersDidChangePayload[T any] struct {
 	State           int             `json:"state,omitempty"`
 	Title           string          `json:"title,omitempty"`
 	TitleParameters TitleParameters `json:"titleParameters,omitempty"`
+	Controller      string          `json:"controller,omitempty"` // Encoder or Keypad. Not documented.
 }
 
 // TitleParameters A json object
