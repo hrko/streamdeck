@@ -14,14 +14,14 @@ type OpenURLPayload struct {
 type SetTitlePayload struct {
 	Title  string `json:"title"`
 	Target Target `json:"target"`
-	State  int    `json:"state"`
+	State  *int   `json:"state,omitempty"`
 }
 
 // SetImagePayload The image to display encoded in base64 with the image format declared in the mime type (PNG, JPEG, BMP, ...). svg is also supported. If no image is passed, the image is reset to the default image from the manifest.
 type SetImagePayload struct {
 	Base64Image string `json:"image"`
 	Target      Target `json:"target"`
-	State       int    `json:"state"`
+	State       *int   `json:"state,omitempty"`
 }
 
 type SetFeedbackLayoutPayload struct {

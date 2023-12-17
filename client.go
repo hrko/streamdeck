@@ -222,13 +222,13 @@ func (client *Client) LogMessage(ctx context.Context, message string) error {
 }
 
 // SetTitle Dynamically change the title of an instance of an action.
-func (client *Client) SetTitle(ctx context.Context, title string, target Target) error {
-	return client.send(ctx, NewEvent(ctx, SetTitle, SetTitlePayload{Title: title, Target: target}))
+func (client *Client) SetTitle(ctx context.Context, title string, target Target, state *int) error {
+	return client.send(ctx, NewEvent(ctx, SetTitle, SetTitlePayload{Title: title, Target: target, State: state}))
 }
 
 // SetImage Dynamically change the image displayed by an instance of an action.
-func (client *Client) SetImage(ctx context.Context, base64image string, target Target) error {
-	return client.send(ctx, NewEvent(ctx, SetImage, SetImagePayload{Base64Image: base64image, Target: target}))
+func (client *Client) SetImage(ctx context.Context, base64image string, target Target, state *int) error {
+	return client.send(ctx, NewEvent(ctx, SetImage, SetImagePayload{Base64Image: base64image, Target: target, State: state}))
 }
 
 // SetFeedback The plugin can send a setFeedback event to the Stream Deck application to dynamically change properties of items on the Stream Deck + touch display layout.
