@@ -238,7 +238,7 @@ func (client *Client) SetFeedback(ctx context.Context, payload any) error {
 
 // SetFeedbackLayout
 func (client *Client) SetFeedbackLayout(ctx context.Context, layout string) error {
-	return client.send(ctx, NewEvent(ctx, SetImage, SetFeedbackLayoutPayload{Layout: layout}))
+	return client.send(ctx, NewEvent(ctx, SetFeedbackLayout, SetFeedbackLayoutPayload{Layout: layout}))
 }
 
 // ShowAlert Temporarily show an alert icon on the image displayed by an instance of an action.

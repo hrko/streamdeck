@@ -60,6 +60,8 @@ const (
 	SetImage = "setImage"
 	// SetFeedback
 	SetFeedback = "setFeedback"
+	// SetFeedbackLayout
+	SetFeedbackLayout = "SetFeedbackLayout"
 	// ShowAlert Temporarily show an alert icon on the image displayed by an instance of an action.
 	ShowAlert = "showAlert"
 	// ShowOk Temporarily show an OK checkmark icon on the image displayed by an instance of an action.
